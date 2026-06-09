@@ -7,13 +7,18 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const connectionString = process.env.DATABASE_URL;
 
+if (!connectionString) {
+  throw new Error(
+    'DATABASE_URL is required. Set it in your environment or .env file for local development, and configure it in Render as an env var.'
+  );
+}
+
 const poolConfig = {
-  connectionString: connectionString,
-  // If no connectionString is provided, pg will use standard PGUSER, PGHOST, etc. from env
+  connectionString,
 };
 
 // Deployed DBs on Neon/Render/Supabase typically require SSL in production
-if (connectionString && (isProduction || process.env.PGSSL === 'true' || connectionString.includes('neon.tech') || connectionString.includes('supabase.co'))) {
+if (isProduction || process.env.PGSSL === 'true' || connectionString.includes('neon.tech') || connectionString.includes('supabase.co')) {
   poolConfig.ssl = {
     rejectUnauthorized: false
   };
@@ -43,6 +48,7 @@ async function runMigrations() {
     }
   } catch (err) {
     console.error('Error running migrations on startup:', err);
+    throw err;
   }
 }
 
