@@ -5,7 +5,7 @@ A secure, mobile-responsive, and modern full-stack web application designed for 
 ---
 
 ## 🚀 Deployed URLs
-* **Frontend Web App**: *[User to insert deployed Vercel/Netlify URL]*
+* **Frontend Web App**: https://vitto-r39g-nfdn0q7kj-sujalpawar0804-2981s-projects.vercel.app
 * **Backend API Base**: *[User to insert deployed Render/Railway URL]*
 
 ---
