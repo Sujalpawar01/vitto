@@ -1,8 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const http = require('http');
-const app = require('../src/app');
-const db = require('../src/config/db');
+const app = require('../app');
+const db = require('../config/db');
 
 // Helper to start the Express server on an ephemeral port
 function startTestServer(app) {
