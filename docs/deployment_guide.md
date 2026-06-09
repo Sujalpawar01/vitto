@@ -28,6 +28,7 @@ The repository includes `render.yaml`, so Render can read most service settings 
    - Runtime: `Node`
    - Build Command: `npm ci`
    - Start Command: `npm start`
+   - Health Check Path: `/`
 3. Add these environment variables:
    - `NODE_ENV`: `production`
    - `NODE_VERSION`: `22`
@@ -46,6 +47,12 @@ The repository includes `render.yaml`, so Render can read most service settings 
 ```
 
 The backend automatically runs `migrations/001_init.sql` on startup, creating the schema and seeding the default agent.
+
+If Render starts from the repository root instead of `backend`, use these manual settings instead:
+
+- Root Directory: leave blank
+- Build Command: `npm run render:build`
+- Start Command: `npm start`
 
 ## 3. Deploy On Vercel
 
