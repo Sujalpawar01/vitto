@@ -24,9 +24,9 @@ Built-in Node testing: I used Node’s default test runner to keep testing fast 
 
  Known Issues and Limitations
 
-* Right now, the dashboard loads all applications at once, so it may become slow if the number of records grows too large.
-* The application form is public, so in a real production environment it could be misused for spam submissions.
-* For this assignment, I assumed the agent account already exists in the database with the username **agent1** and password **Password123**.
+ Right now, the dashboard loads all applications at once, so it may become slow if the number of records grows too large.
+ The application form is public, so in a real production environment it could be misused for spam submissions.
+ For this assignment, I assumed the agent account already exists in the database with the username agent1 and password Password123.
 
  Future Improvements
 
@@ -36,5 +36,6 @@ Here are some things I would improve next:
 2. Add pagination so applications load in smaller chunks instead of all at once.
 3. Send SMS or WhatsApp alerts when a loan is approved or rejected.
 4. Add an audit log table to record which agent took each action and when.
+
 
 

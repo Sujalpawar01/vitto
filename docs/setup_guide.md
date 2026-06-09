@@ -5,9 +5,9 @@ Follow these steps to run the Vitto Loan Application Portal on your local machin
 ---
 
 ## 📋 Prerequisites
-* **Node.js** (v18.x or higher)
-* **npm** (v9.x or higher)
-* **PostgreSQL** instance (local server or a free-tier database like Neon or Supabase)
+ Node.js (v18.x or higher)
+ npm (v9.x or higher)
+ PostgreSQL instance (local server or a free-tier database like Neon or Supabase)
 
 ---
 
@@ -42,7 +42,7 @@ You need a PostgreSQL database. You can use your existing local PostgreSQL insta
    PGSSL=false
    JWT_SECRET=vitto_loan_portal_secure_secret_key_change_me
    ```
-   *Note: If you use a cloud provider like Neon, set `DATABASE_URL` to your cloud connection string and `PGSSL=true`.*
+   Note: If you use a cloud provider like Neon, set `DATABASE_URL` to your cloud connection string and `PGSSL=true`.
 5. Start the backend development server:
    ```bash
    npm run dev
@@ -71,6 +71,7 @@ You need a PostgreSQL database. You can use your existing local PostgreSQL insta
 ---
 
 ## 🔑 Demo Access Credentials
-To test the Operations Dashboard, click **Agent Portal** in the navigation header and use the pre-seeded credentials:
-* **Username**: `agent1`
-* **Password**: `Password123`
+To test the Operations Dashboard, click Agent Portal in the navigation header and use the pre-seeded credentials:
+ Username: `agent1`
+ Password: `Password123`
+

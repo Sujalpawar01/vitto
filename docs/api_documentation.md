@@ -8,9 +8,9 @@ All endpoints return JSON payloads and expect body requests to be in JSON format
 
 ### 1. Agent Login
 Authenticates an agent and returns a JWT bearer token.
-* **Route**: `POST /api/auth/login`
-* **Auth Required**: No
-* **Request Body**:
+ Route: `POST /api/auth/login`
+ Auth Required: No
+ Request Body:
   ```json
   {
     "username": "agent1",
@@ -18,7 +18,7 @@ Authenticates an agent and returns a JWT bearer token.
   }
   }
   ```
-* **Success Response (200 OK)**:
+ Success Response (200 OK):
   ```json
   {
     "success": true,
@@ -38,9 +38,9 @@ Authenticates an agent and returns a JWT bearer token.
 
 ### 2. Submit Loan Application
 Submits a new loan application. All fields are required.
-* **Route**: `POST /api/applications`
-* **Auth Required**: No
-* **Request Body**:
+ Route: `POST /api/applications`
+ Auth Required: No
+ Request Body:
   ```json
   {
     "name": "Sujal Pawar",
@@ -50,8 +50,8 @@ Submits a new loan application. All fields are required.
     "language": "Hindi"
   }
   ```
-  *Allowed languages:* `Hindi`, `Tamil`, `Telugu`, `Marathi`, `English` (case-insensitive, normalized by server).
-* **Success Response (201 Created)**:
+  Allowed languages: `Hindi`, `Tamil`, `Telugu`, `Marathi`, `English` (case-insensitive, normalized by server).
+ Success Response (201 Created):
   ```json
   {
     "success": true,
@@ -68,7 +68,7 @@ Submits a new loan application. All fields are required.
     }
   }
   ```
-* **Validation Error Response (400 Bad Request)**:
+ Validation Error Response (400 Bad Request):
   ```json
   {
     "success": false,
@@ -83,12 +83,12 @@ Submits a new loan application. All fields are required.
 
 ### 3. List Applications
 Retrieves a list of all submitted applications, sorted by latest first.
-* **Route**: `GET /api/applications`
-* **Auth Required**: Yes (Bearer Token in Header: `Authorization: Bearer <token>`)
-* **Query Parameters** (Optional):
-  * `status`: Filters by status (`pending`, `approved`, `rejected`).
-  * `search`: Case-insensitive text search filtering applicant names or mobile numbers.
-* **Success Response (200 OK)**:
+ Route: `GET /api/applications`
+ Auth Required: Yes (Bearer Token in Header: `Authorization: Bearer <token>`)
+ Query Parameters (Optional):
+   `status`: Filters by status (`pending`, `approved`, `rejected`).
+   `search`: Case-insensitive text search filtering applicant names or mobile numbers.
+ Success Response (200 OK):
   ```json
   {
     "success": true,
@@ -112,18 +112,18 @@ Retrieves a list of all submitted applications, sorted by latest first.
 
 ### 4. Update Application Status
 Approve or reject a loan application.
-* **Route**: `PATCH /api/applications/:id/status`
-* **Auth Required**: Yes (Bearer Token)
-* **URL Parameters**:
-  * `id`: The UUID of the application.
-* **Request Body**:
+ Route: `PATCH /api/applications/:id/status`
+ Auth Required: Yes (Bearer Token)
+ URL Parameters:
+   `id`: The UUID of the application.
+ Request Body:
   ```json
   {
     "status": "approved"
   }
   ```
-  *Allowed status values:* `approved`, `rejected`.
-* **Success Response (200 OK)**:
+  Allowed status values: `approved`, `rejected`.
+ Success Response (200 OK):
   ```json
   {
     "success": true,
@@ -145,9 +145,9 @@ Approve or reject a loan application.
 
 ### 5. Fetch Dashboard Summary
 Fetches aggregate statistics to populate the agent dashboard counters.
-* **Route**: `GET /api/summary`
-* **Auth Required**: Yes (Bearer Token)
-* **Success Response (200 OK)**:
+ Route: `GET /api/summary`
+ Auth Required: Yes (Bearer Token)
+ Success Response (200 OK):
   ```json
   {
     "success": true,
@@ -162,3 +162,4 @@ Fetches aggregate statistics to populate the agent dashboard counters.
     }
   }
   ```
+
