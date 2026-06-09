@@ -6,7 +6,7 @@ A secure, mobile-responsive, and modern full-stack web application designed for 
 
 ## 🚀 Deployed URLs
 * **Frontend Web App**: https://vitto-r39g.vercel.app
-* **Backend API Base**: *[User to insert deployed Render/Railway URL]*
+* **Backend API Base**: https://vitto-oohs.onrender.com
 
 ---
 
