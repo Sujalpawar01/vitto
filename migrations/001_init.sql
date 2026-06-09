@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_created_at ON applications(created_at DESC);
 
 -- Seed Default Agent (Username: agent1, Password: Password123)
--- Password hash generated using bcrypt ($2b$10$O9wR/Wp24.d.4C8Y8k7mOujH4x1wJ5rA74u75zZp06a3s.N3w7U.O)
+-- Hash verified: bcrypt.hash('Password123', 10) → matches bcrypt.compare('Password123', hash) = true
 INSERT INTO agents (username, password_hash, name) 
-VALUES ('agent1', '$2b$10$O9wR/Wp24.d.4C8Y8k7mOujH4x1wJ5rA74u75zZp06a3s.N3w7U.O', 'Operations Agent')
-ON CONFLICT (username) DO NOTHING;
+VALUES ('agent1', '$2a$10$ZyXwB6VyClxBqHjhtjRCbu8lhfW6jTWSHMRsPkHw.1G8.oC3vto9C', 'Operations Agent')
+ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
