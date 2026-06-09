@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import API_BASE_URL from '../config';
 import StatsBar from '../components/StatsBar';
 import { StatusBadge, LanguageBadge } from '../components/StatusBadge';
@@ -96,7 +96,7 @@ export default function DashboardPage({ token }) {
   }, [searchQuery]);
 
   // ── Fetchers ────────────────────────────────────────────────────────────────
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     setAppsLoading(true);
     setError('');
     try {
@@ -114,21 +114,21 @@ export default function DashboardPage({ token }) {
     } finally {
       setAppsLoading(false);
     }
-  };
+  }, [debouncedSearch, statusFilter, token]);
 
-  const fetchSummary = async () => {
+  const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
     try {
       const res  = await fetch(`${API_BASE_URL}/summary`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (res.ok) setSummary(data.summary);
-    } catch (_) {/* silent */} finally {
+    } catch {/* silent */} finally {
       setSummaryLoading(false);
     }
-  };
+  }, [token]);
 
-  useEffect(() => { fetchApplications(); }, [statusFilter, debouncedSearch]);
-  useEffect(() => { fetchSummary(); }, []);
+  useEffect(() => { fetchApplications(); }, [fetchApplications]);
+  useEffect(() => { fetchSummary(); }, [fetchSummary]);
 
   // ── Confirm-gate: open dialog before patching status ────────────────────────
   const requestStatusChange = (app, newStatus) => {

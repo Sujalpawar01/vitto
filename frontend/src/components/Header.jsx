@@ -1,4 +1,3 @@
-import React from 'react';
 import { Shield, FileText, LogOut, LayoutDashboard } from 'lucide-react';
 
 export default function Header({ currentView, setView, isAuthenticated, onLogout }) {

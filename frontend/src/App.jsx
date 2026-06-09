@@ -1,32 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Header from './components/Header';
 import ApplyPage from './pages/ApplyPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 
 export default function App() {
-  const [view, setView] = useState('apply'); // 'apply', 'login', 'dashboard'
-  const [token, setToken] = useState(null);
-  const [agent, setAgent] = useState(null);
-
-  // Check for stored credentials on load
-  useEffect(() => {
-    const storedToken = localStorage.getItem('vitto_agent_token');
-    const storedAgent = localStorage.getItem('vitto_agent_info');
-    
-    if (storedToken && storedAgent) {
-      setToken(storedToken);
-      setAgent(JSON.parse(storedAgent));
-      // Default logged in agents to the dashboard
-      setView('dashboard');
-    }
-  }, []);
+  const [token, setToken] = useState(() => localStorage.getItem('vitto_agent_token'));
+  const [view, setView] = useState(() => (localStorage.getItem('vitto_agent_token') ? 'dashboard' : 'apply'));
 
   const handleLoginSuccess = (newToken, newAgent) => {
     localStorage.setItem('vitto_agent_token', newToken);
     localStorage.setItem('vitto_agent_info', JSON.stringify(newAgent));
     setToken(newToken);
-    setAgent(newAgent);
     setView('dashboard');
   };
 
@@ -34,7 +19,6 @@ export default function App() {
     localStorage.removeItem('vitto_agent_token');
     localStorage.removeItem('vitto_agent_info');
     setToken(null);
-    setAgent(null);
     setView('apply');
   };
 

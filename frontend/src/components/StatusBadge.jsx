@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function StatusBadge({ status }) {
   const cleanStatus = (status || 'pending').toLowerCase();
   

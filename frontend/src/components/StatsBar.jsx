@@ -1,5 +1,4 @@
-import React from 'react';
-import { DollarSign, FileText, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { FileText, CheckCircle2, XCircle, Clock } from 'lucide-react';
 
 export default function StatsBar({ summary, loading }) {
   if (loading) {

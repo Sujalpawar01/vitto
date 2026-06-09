@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import API_BASE_URL from '../config';
 import { Send, Check, AlertCircle, Copy, CheckCheck } from 'lucide-react';
 
@@ -30,7 +30,7 @@ export default function ApplyPage() {
       await navigator.clipboard.writeText(successRef);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
-    } catch (_) {
+    } catch {
       // fallback: select text in the box
     }
   };
