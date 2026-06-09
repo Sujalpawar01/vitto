@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import API_BASE_URL from '../config';
-import { Send, Check, AlertCircle } from 'lucide-react';
+import { Send, Check, AlertCircle, Copy, CheckCheck } from 'lucide-react';
 
 export default function ApplyPage() {
   const [formData, setFormData] = useState({
@@ -14,6 +14,7 @@ export default function ApplyPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState([]);
   const [successRef, setSuccessRef] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,6 +22,17 @@ export default function ApplyPage() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleCopyRef = async () => {
+    if (!successRef) return;
+    try {
+      await navigator.clipboard.writeText(successRef);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (_) {
+      // fallback: select text in the box
+    }
   };
 
   const validateForm = () => {
@@ -227,21 +239,69 @@ export default function ApplyPage() {
             <div className="success-icon-container">
               <Check />
             </div>
-            <h2 className="modal-title">Application Submitted!</h2>
+            <h2 className="modal-title">Application Submitted! 🎉</h2>
             <p style={{ color: 'var(--text-secondary)' }}>
               Your loan application has been received and is under review by our operations team.
             </p>
-            <div style={{ marginTop: '16px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Your application reference number is:
+
+            <div style={{ marginTop: '16px', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+              Your unique application reference number:
             </div>
-            <div className="ref-box">{successRef}</div>
-            <button 
-              className="btn btn-primary" 
-              style={{ width: '100%', marginTop: '12px' }}
-              onClick={() => setSuccessRef(null)}
-            >
-              Okay, Close
-            </button>
+
+            {/* Reference box with copy-to-clipboard */}
+            <div style={{ position: 'relative' }}>
+              <div className="ref-box" style={{ paddingRight: '48px' }}>{successRef}</div>
+              <button
+                onClick={handleCopyRef}
+                title="Copy reference number"
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: copied ? 'var(--color-approved)' : 'var(--text-muted)',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.2s ease'
+                }}
+              >
+                {copied ? <CheckCheck size={18} /> : <Copy size={18} />}
+              </button>
+            </div>
+
+            {copied && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--color-approved)', marginTop: '-8px', marginBottom: '8px' }}>
+                ✓ Reference number copied!
+              </p>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <button
+                className="btn btn-outline"
+                style={{ flex: 1 }}
+                onClick={() => {
+                  setSuccessRef(null);
+                  setCopied(false);
+                }}
+              >
+                Submit Another
+              </button>
+              <button
+                className="btn btn-primary"
+                style={{ flex: 1 }}
+                onClick={() => {
+                  setSuccessRef(null);
+                  setCopied(false);
+                }}
+              >
+                <Check size={16} />
+                <span>Done</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

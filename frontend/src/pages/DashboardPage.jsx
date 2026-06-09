@@ -2,167 +2,208 @@ import React, { useState, useEffect } from 'react';
 import API_BASE_URL from '../config';
 import StatsBar from '../components/StatsBar';
 import { StatusBadge, LanguageBadge } from '../components/StatusBadge';
-import { Search, RotateCw, Check, X, User } from 'lucide-react';
+import { Search, RotateCw, Check, X, User, AlertTriangle } from 'lucide-react';
 
+// ─── Confirm Dialog Component ────────────────────────────────────────────────
+function ConfirmDialog({ isOpen, onConfirm, onCancel, action, applicantName }) {
+  if (!isOpen) return null;
+
+  const isApprove = action === 'approved';
+  const actionColor = isApprove ? 'var(--color-approved)' : 'var(--color-rejected)';
+  const actionBg   = isApprove ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content confirm-dialog" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+        {/* Warning icon */}
+        <div
+          className="success-icon-container"
+          style={{ backgroundColor: actionBg, color: actionColor, margin: '0 auto 20px' }}
+        >
+          <AlertTriangle size={32} />
+        </div>
+
+        <h3 className="modal-title" style={{ fontSize: '1.25rem' }}>
+          {isApprove ? 'Approve Application?' : 'Reject Application?'}
+        </h3>
+
+        <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '0.95rem' }}>
+          You are about to{' '}
+          <strong style={{ color: actionColor }}>
+            {isApprove ? 'approve' : 'reject'}
+          </strong>{' '}
+          the loan application submitted by{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>{applicantName}</strong>.
+          <br />
+          <span style={{ display: 'block', marginTop: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            This action cannot be undone.
+          </span>
+        </p>
+
+        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+          <button
+            className="btn btn-outline"
+            style={{ flex: 1 }}
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn"
+            style={{
+              flex: 1,
+              background: isApprove ? 'var(--color-approved)' : 'var(--color-rejected)',
+              color: '#fff',
+              border: 'none'
+            }}
+            onClick={onConfirm}
+          >
+            {isApprove ? <Check size={16} /> : <X size={16} />}
+            <span>{isApprove ? 'Yes, Approve' : 'Yes, Reject'}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Dashboard Page ──────────────────────────────────────────────────────
 export default function DashboardPage({ token }) {
-  const [applications, setApplications] = useState([]);
-  const [summary, setSummary] = useState(null);
-  
-  const [statusFilter, setStatusFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [applications, setApplications]   = useState([]);
+  const [summary, setSummary]             = useState(null);
+
+  const [statusFilter, setStatusFilter]   = useState('');
+  const [searchQuery, setSearchQuery]     = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  
-  const [appsLoading, setAppsLoading] = useState(false);
+
+  const [appsLoading, setAppsLoading]     = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError]                 = useState('');
 
-  // Debounce search query to prevent excessive API requests
+  // Confirm dialog state
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    appId: null,
+    appName: '',
+    action: null     // 'approved' | 'rejected'
+  });
+
+  // Debounce search query to prevent excessive API calls
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 400);
-
+    const handler = setTimeout(() => setDebouncedSearch(searchQuery), 400);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fetch applications list
+  // ── Fetchers ────────────────────────────────────────────────────────────────
   const fetchApplications = async () => {
     setAppsLoading(true);
     setError('');
     try {
-      let url = `${API_BASE_URL}/applications`;
       const params = [];
-      if (statusFilter) params.push(`status=${statusFilter}`);
+      if (statusFilter)    params.push(`status=${statusFilter}`);
       if (debouncedSearch) params.push(`search=${encodeURIComponent(debouncedSearch)}`);
-      
-      if (params.length > 0) {
-        url += `?${params.join('&')}`;
-      }
+      const url = `${API_BASE_URL}/applications${params.length ? '?' + params.join('&') : ''}`;
 
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to retrieve applications.');
-      }
-
+      const res  = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to retrieve applications.');
       setApplications(data.applications || []);
     } catch (err) {
-      console.error('Fetch applications error:', err);
       setError(err.message || 'Failed to connect to the backend server.');
     } finally {
       setAppsLoading(false);
     }
   };
 
-  // Fetch dashboard summary counts
   const fetchSummary = async () => {
     setSummaryLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/summary`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setSummary(data.summary);
-      }
-    } catch (err) {
-      console.error('Fetch summary error:', err);
-    } finally {
+      const res  = await fetch(`${API_BASE_URL}/summary`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (res.ok) setSummary(data.summary);
+    } catch (_) {/* silent */} finally {
       setSummaryLoading(false);
     }
   };
 
-  // Initial fetch and refetch when filters change
-  useEffect(() => {
-    fetchApplications();
-  }, [statusFilter, debouncedSearch]);
+  useEffect(() => { fetchApplications(); }, [statusFilter, debouncedSearch]);
+  useEffect(() => { fetchSummary(); }, []);
 
-  // Fetch summary on load or after status updates
-  useEffect(() => {
-    fetchSummary();
-  }, []);
-
-  const handleRefresh = () => {
-    fetchApplications();
-    fetchSummary();
+  // ── Confirm-gate: open dialog before patching status ────────────────────────
+  const requestStatusChange = (app, newStatus) => {
+    setConfirmState({ open: true, appId: app.id, appName: app.name, action: newStatus });
   };
 
-  // Handle application status transition
-  const handleUpdateStatus = async (id, newStatus) => {
-    setActionLoadingId(id);
+  const handleConfirm = async () => {
+    const { appId, action } = confirmState;
+    setConfirmState({ open: false, appId: null, appName: '', action: null });
+    setActionLoadingId(appId);
     setError('');
     try {
-      const response = await fetch(`${API_BASE_URL}/applications/${id}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
+      const res  = await fetch(`${API_BASE_URL}/applications/${appId}/status`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body:    JSON.stringify({ status: action })
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update status.');
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update application status.');
-      }
-
-      // Update local state for the specific application to avoid full refresh
-      setApplications((prev) =>
-        prev.map((app) => (app.id === id ? { ...app, status: newStatus } : app))
-      );
-
-      // Re-trigger summary stats update
+      // Optimistic local update — no full reload needed
+      setApplications(prev => prev.map(a => a.id === appId ? { ...a, status: action } : a));
       fetchSummary();
     } catch (err) {
-      console.error('Update status error:', err);
       setError(err.message || 'Failed to update status.');
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // Formatter for Currency
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(val);
-  };
+  const handleCancelConfirm = () =>
+    setConfirmState({ open: false, appId: null, appName: '', action: null });
 
-  // Formatter for Dates
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  // ── Formatters ──────────────────────────────────────────────────────────────
+  const formatCurrency = (val) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+
+  const formatDate = (d) => {
+    if (!d) return '';
+    return new Date(d).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
   };
 
+  const truncate = (str, max = 60) =>
+    str && str.length > max ? str.slice(0, max) + '…' : str;
+
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="dashboard-page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmState.open}
+        action={confirmState.action}
+        applicantName={confirmState.appName}
+        onConfirm={handleConfirm}
+        onCancel={handleCancelConfirm}
+      />
+
+      {/* Page heading */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h2>Operations <span className="gradient-text">Dashboard</span></h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
             Monitor and process incoming loan applications.
           </p>
         </div>
-        <button className="btn btn-secondary" onClick={handleRefresh} disabled={appsLoading || summaryLoading}>
-          <RotateCw size={16} className={appsLoading || summaryLoading ? 'spin' : ''} />
+        <button
+          className="btn btn-secondary"
+          onClick={() => { fetchApplications(); fetchSummary(); }}
+          disabled={appsLoading || summaryLoading}
+        >
+          <RotateCw size={16} />
           <span>Refresh</span>
         </button>
       </div>
@@ -171,12 +212,13 @@ export default function DashboardPage({ token }) {
       <StatsBar summary={summary} loading={summaryLoading} />
 
       {error && (
-        <div className="error-alert" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="error-alert" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <AlertTriangle size={18} style={{ flexShrink: 0 }} />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Search and Filters Controls */}
+      {/* Search & Filter Controls */}
       <div className="dashboard-controls">
         <div className="search-wrapper">
           <Search className="search-icon" />
@@ -186,17 +228,18 @@ export default function DashboardPage({ token }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input-control search-input"
+            id="dashboard-search"
           />
         </div>
 
         <div className="filter-group">
-          <label htmlFor="status-filter" style={{ whiteSpace: 'nowrap' }}>Status Filter:</label>
+          <label htmlFor="status-filter" style={{ whiteSpace: 'nowrap' }}>Filter:</label>
           <select
             id="status-filter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="input-control"
-            style={{ width: '160px' }}
+            style={{ width: '170px' }}
           >
             <option value="">All Applications</option>
             <option value="pending">Pending</option>
@@ -210,15 +253,15 @@ export default function DashboardPage({ token }) {
       <div className="table-responsive">
         {appsLoading && applications.length === 0 ? (
           <div className="text-center no-data">
-            <span className="spinner" style={{ margin: '0 auto 16px', borderTopColor: 'var(--accent-primary)' }}></span>
-            <p>Loading applications data...</p>
+            <span className="spinner" style={{ margin: '0 auto 16px', display: 'block', borderTopColor: 'var(--accent-primary)' }} />
+            <p>Loading applications…</p>
           </div>
         ) : applications.length === 0 ? (
           <div className="text-center no-data">
             <User size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
             <h3>No Applications Found</h3>
             <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>
-              We couldn't find any loan applications matching the selected filters.
+              No loan applications match your current filters.
             </p>
           </div>
         ) : (
@@ -228,25 +271,28 @@ export default function DashboardPage({ token }) {
                 <th>Applicant Name</th>
                 <th>Mobile</th>
                 <th>Amount</th>
+                <th>Purpose</th>
                 <th>Language</th>
                 <th>Status</th>
                 <th>Date Applied</th>
-                <th style={{ width: '200px' }}>Actions</th>
+                <th style={{ width: '180px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {applications.map((app) => (
                 <tr key={app.id}>
                   <td style={{ fontWeight: '500' }}>{app.name}</td>
-                  <td>{app.mobile}</td>
-                  <td style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{formatCurrency(app.amount)}</td>
-                  <td>
-                    <LanguageBadge language={app.language} />
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>{app.mobile}</td>
+                  <td style={{ fontWeight: '600' }}>{formatCurrency(app.amount)}</td>
+                  <td
+                    title={app.purpose}
+                    style={{ maxWidth: '200px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}
+                  >
+                    {truncate(app.purpose)}
                   </td>
-                  <td>
-                    <StatusBadge status={app.status} />
-                  </td>
-                  <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  <td><LanguageBadge language={app.language} /></td>
+                  <td><StatusBadge status={app.status} /></td>
+                  <td style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                     {formatDate(app.created_at)}
                   </td>
                   <td>
@@ -254,25 +300,38 @@ export default function DashboardPage({ token }) {
                       {app.status === 'pending' ? (
                         <>
                           <button
+                            id={`approve-${app.id}`}
                             className="btn btn-approve"
-                            onClick={() => handleUpdateStatus(app.id, 'approved')}
+                            onClick={() => requestStatusChange(app, 'approved')}
                             disabled={actionLoadingId === app.id}
+                            title="Approve this application"
                           >
-                            {actionLoadingId === app.id ? <span className="spinner" style={{ width: '12px', height: '12px' }}></span> : <Check size={14} />}
+                            {actionLoadingId === app.id
+                              ? <span className="spinner" style={{ width: '12px', height: '12px' }} />
+                              : <Check size={14} />}
                             <span>Approve</span>
                           </button>
                           <button
+                            id={`reject-${app.id}`}
                             className="btn btn-reject"
-                            onClick={() => handleUpdateStatus(app.id, 'rejected')}
+                            onClick={() => requestStatusChange(app, 'rejected')}
                             disabled={actionLoadingId === app.id}
+                            title="Reject this application"
                           >
-                            {actionLoadingId === app.id ? <span className="spinner" style={{ width: '12px', height: '12px' }}></span> : <X size={14} />}
+                            {actionLoadingId === app.id
+                              ? <span className="spinner" style={{ width: '12px', height: '12px' }} />
+                              : <X size={14} />}
                             <span>Reject</span>
                           </button>
                         </>
                       ) : (
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: '8px' }}>
-                          Processed
+                        <span style={{
+                          fontSize: '0.8rem',
+                          color: app.status === 'approved' ? 'var(--color-approved)' : 'var(--color-rejected)',
+                          fontWeight: '500',
+                          paddingLeft: '4px'
+                        }}>
+                          {app.status === 'approved' ? '✓ Approved' : '✗ Rejected'}
                         </span>
                       )}
                     </div>
@@ -283,6 +342,15 @@ export default function DashboardPage({ token }) {
           </table>
         )}
       </div>
+
+      {/* Record count footer */}
+      {applications.length > 0 && (
+        <p style={{ marginTop: '12px', fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+          Showing {applications.length} application{applications.length !== 1 ? 's' : ''}
+          {statusFilter ? ` · ${statusFilter}` : ''}
+          {debouncedSearch ? ` · "${debouncedSearch}"` : ''}
+        </p>
+      )}
     </div>
   );
 }
