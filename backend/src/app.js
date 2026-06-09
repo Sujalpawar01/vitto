@@ -6,10 +6,14 @@ const { getSummary } = require('./controllers/applicationController');
 const { authenticateAgent } = require('./middleware/authMiddleware');
 
 const app = express();
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Middleware
 app.use(cors({
-  origin: '*', // Allow all origins for simplicity in assessment, can restrict to frontend URL in production
+  origin: allowedOrigins.length ? allowedOrigins : '*',
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
