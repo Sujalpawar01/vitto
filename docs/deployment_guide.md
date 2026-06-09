@@ -47,15 +47,16 @@ The repository includes `render.yaml`, so Render can read most service settings 
 
 The backend automatically runs `migrations/001_init.sql` on startup, creating the schema and seeding the default agent.
 
-## 3. Deploy The Frontend On Vercel
+## 3. Deploy On Vercel
+
+The repository includes a root `vercel.json` with `experimentalServices` for this monorepo:
+
+- `frontend` serves the Vite app from `/`
+- `backend` is registered from `backend` at `/_/backend`
 
 1. Go to Vercel and import the same GitHub repository.
-2. Configure:
-   - Framework Preset: `Vite`
-   - Root Directory: `frontend`
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-3. Add this environment variable:
+2. Keep the project root as the repository root so Vercel can read `vercel.json`.
+3. Add this environment variable for the frontend service:
    - `VITE_API_URL`: your Render backend URL plus `/api`
 
 Example:
